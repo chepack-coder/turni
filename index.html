@@ -3,95 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <title>🏥 Gestionale Turni CA</title>
-    <link rel="stylesheet" href="https://jsdelivr.net">
     <style>
-        body { background: #f4f7f6; padding: 20px; font-family: system-ui, sans-serif; }
-        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: none; }
-        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .indisp-badge { background: #fff3cd; border: 1px solid #ffe69c; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; color: #0d6efd; margin-bottom: 30px; font-size: 2rem; }
+        .row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+        .col { flex: 1; min-width: 300px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; }
+        h3 { margin-top: 0; color: #495057; border-bottom: 2px solid #dee2e6; padding-bottom: 8px; font-size: 1.2rem; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #6c757d; }
+        .form-control, .form-select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 0.95rem; }
+        .btn { display: inline-block; width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; }
+        .btn-success { background-color: #198754; }
+        .btn-warning { background-color: #ffc107; color: #000; }
+        .btn-primary { background-color: #0d6efd; }
+        .btn-danger { background-color: #dc3545; padding: 4px 10px; width: auto; font-size: 0.8rem; border-radius: 4px; }
+        .btn-clear { background-color: #6c757d; margin-top: 15px; font-size: 0.8rem; padding: 6px; }
+        .list-group { list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; }
+        .list-group-item { padding: 10px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; background: #fff; font-size: 0.95rem; }
+        .list-group-item:last-child { border-bottom: none; }
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; font-size: 0.95rem; }
+        th { background-color: #212529; color: white; }
+        tr:hover { background-color: #f8f9fa; }
+        .badge-feriale { color: #198754; font-weight: bold; }
+        .badge-festivo { color: #dc3545; font-weight: bold; }
+        .flex-indisp { display: flex; flex-wrap: wrap; gap: 10px; max-height: 150px; overflow-y: auto; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 10px; }
+        .indisp-item { background: #fff3cd; border: 1px solid #ffe69c; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <h1 class="text-center my-4 text-primary">🏥 Gestione Turni Continuità Assistenziale (12h)</h1>
+    <div class="container">
+        <h1>🏥 Gestione Turni Continuità Assistenziale (12h)</h1>
         
         <div class="row">
-            <!-- Inserimento Medici -->
-            <div class="col-md-4">
-                <div class="card p-3">
-                    <h3 class="h5 text-secondary">👨‍⚕️ Gestione Medici</h3>
-                    <div class="mb-2"><input id="m_nome" class="form-control" placeholder="Nome e Cognome"></div>
-                    <div class="mb-2"><input id="m_turni" type="number" class="form-control" placeholder="Turni Mensili Contratto" value="8"></div>
-                    <button onclick="aggiungiMedico()" class="btn btn-success w-100 mb-3">Aggiungi Medico</button>
-                    <h6>Medici Attivi:</h6>
-                    <ul id="lista_medici" class="list-group" style="max-height: 200px; overflow-y: auto;"></ul>
+            <!-- Gestione Medici -->
+            <div class="col">
+                <div class="card">
+                    <h3>👨‍⚕️ Gestione Medici</h3>
+                    <div class="form-group">
+                        <input id="m_nome" class="form-control" placeholder="Nome e Cognome Medico">
+                    </div>
+                    <div class="form-group">
+                        <label>Turni Mensili Contratto</label>
+                        <input id="m_turni" type="number" class="form-control" value="8">
+                    </div>
+                    <button type="button" onclick="aggiungiMedico()" class="btn btn-success">Aggiungi Medico</button>
+                    <h4 style="margin-top:20px; font-size:1rem; margin-bottom:10px;">Medici Attivi:</h4>
+                    <ul id="lista_medici" class="list-group"></ul>
                 </div>
             </div>
 
             <!-- Inserimento Indisponibilità -->
-            <div class="col-md-4">
-                <div class="card p-3">
-                    <h3 class="h5 text-secondary">❌ Inserisci Indisponibilità</h3>
-                    <div class="mb-2"><select id="i_medico" class="form-select"><option value="">-- Seleziona Medico --</option></select></div>
-                    <div class="mb-2"><label class="small text-muted">Data Inizio</label><input id="i_inizio" type="date" class="form-control"></div>
-                    <div class="mb-2"><label class="small text-muted">Data Fine (Opzionale)</label><input id="i_fine" type="date" class="form-control"></div>
-                    <div class="mb-2">
+            <div class="col">
+                <div class="card">
+                    <h3>❌ Inserisci Indisponibilità</h3>
+                    <div class="form-group">
+                        <label>Seleziona Medico</label>
+                        <select id="i_medico" class="form-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data Inizio</label>
+                        <input id="i_inizio" type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Fine (Vuoto se singolo giorno)</label>
+                        <input id="i_fine" type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Fascia Oraria</label>
                         <select id="i_slot" class="form-select">
                             <option value="Tutto il giorno">Tutto il giorno</option>
                             <option value="Diurno">Solo Diurno (Festivi)</option>
                             <option value="Notturno">Solo Notturno</option>
                         </select>
                     </div>
-                    <button onclick="aggiungiIndisponibilita()" class="btn btn-warning w-100">Registra Periodo</button>
+                    <button type="button" onclick="aggiungiIndisponibilita()" class="btn btn-warning">Registra Periodo</button>
                 </div>
             </div>
 
-            <!-- Parametri Generazione -->
-            <div class="col-md-4">
-                <div class="card p-3">
-                    <h3 class="h5 text-secondary">🤖 Pianificazione Mensile</h3>
-                    <div class="row mb-2">
-                        <div class="col"><label class="small text-muted">Anno</label><input id="c_anno" type="number" class="form-control" value="2026"></div>
-                        <div class="col"><label class="small text-muted">Mese (1-12)</label><input id="c_mese" type="number" class="form-control" min="1" max="12" value="11"></div>
+            <!-- Pianificazione -->
+            <div class="col">
+                <div class="card">
+                    <h3>🤖 Pianificazione Mensile</h3>
+                    <div class="form-group">
+                        <label>Anno</label>
+                        <input id="c_anno" type="number" class="form-control" value="2026">
                     </div>
-                    <button onclick="generaCalendario()" class="btn btn-primary w-100 mb-2">Genera Turni Automatici</button>
-                    <button onclick="cancellaTuttoConConferma()" class="btn btn-outline-danger w-100 btn-sm">⚠️ Svuota Tutta la Memoria</button>
+                    <div class="form-group">
+                        <label>Mese (1-12)</label>
+                        <input id="c_mese" type="number" class="form-control" min="1" max="12" value="11">
+                    </div>
+                    <button type="button" onclick="generaCalendario()" class="btn btn-primary">Genera Turni Automatici</button>
+                    
+                    <h4 style="margin-top:20px; font-size:1rem; margin-bottom:5px;">Ferie / Indisponibilità Attive:</h4>
+                    <div id="lista_indisp" class="flex-indisp"></div>
+                    
+                    <button type="button" onclick="resettaTutto()" class="btn btn-clear">⚠️ Cancella Memoria Dati</button>
                 </div>
             </div>
-        </div>
-
-        <!-- Sezione Indisponibilità Registrate -->
-        <div class="card p-3">
-            <h3 class="h5 text-secondary">📋 Elenco Indisponibilità Registrate</h3>
-            <div id="lista_indisp" class="d-flex flex-wrap gap-2" style="max-height: 200px; overflow-y: auto;"></div>
         </div>
 
         <!-- Tabellone Turni -->
-        <div class="table-container mt-4">
-            <h3 class="h5 text-secondary mb-3">📋 Tabellone dei Turni Mensili (Modificabile in tempo reale)</h3>
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
+        <div class="table-container">
+            <h3>📋 Tabellone dei Turni Mensili (Modificabile)</h3>
+            <table>
+                <thead>
                     <tr>
                         <th>Data</th>
                         <th>Fascia Oraria</th>
                         <th>Tipologia Giorno</th>
-                        <th>Medico Assegnato</th>
+                        <th>Medico Assegnato (Flessibile)</th>
                     </tr>
                 </thead>
                 <tbody id="tabella_turni">
-                    <tr><td colspan="4" class="text-center text-muted">Nessun turno generato. Inserisci i medici e clicca su "Genera Turni Automatici".</td></tr>
+                    <tr><td colspan="4" style="text-align:center; color:#6c757d;">Nessun turno generato. Inserisci i medici e clicca su "Genera Turni Automatici".</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Memoria interna sicura del browser
         let medici = JSON.parse(localStorage.getItem('ca_medici')) || [];
         let indisponibilita = JSON.parse(localStorage.getItem('ca_indisponibilita')) || [];
         let calendario = JSON.parse(localStorage.getItem('ca_calendario')) || [];
         let contatoreIndispId = parseInt(localStorage.getItem('ca_contatoreIndispId')) || 1;
 
-        function salvaDatiNelBrowser() {
+        function salvaDati() {
             localStorage.setItem('ca_medici', JSON.stringify(medici));
             localStorage.setItem('ca_indisponibilita', JSON.stringify(indisponibilita));
             localStorage.setItem('ca_calendario', JSON.stringify(calendario));
@@ -99,157 +140,159 @@
         }
 
         function aggiornaInterfaccia() {
+            // Aggiorna elenco medici anagrafica
             const listaMediciEl = document.getElementById('lista_medici');
             if (medici.length === 0) {
-                listaMediciEl.innerHTML = '<li class="list-group-item text-muted small">Nessun medico inserito</li>';
+                listaMediciEl.innerHTML = '<li class="list-group-item text-muted">Nessun medico presente</li>';
             } else {
                 listaMediciEl.innerHTML = medici.map(m => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center small p-2">
-                        ${m.nome} (Contratto: ${m.turniContratto})
-                        <button class="btn btn-danger btn-sm py-0 px-1" onclick="rimuoviMedico(${m.id})">×</button>
+                    <li class="list-group-item">
+                        <span>${m.nome} (Turni: ${m.turniContratto})</span>
+                        <button class="btn btn-danger" onclick="rimuoviMedico(${m.id})">Rimuovi</button>
                     </li>
                 `).join('');
             }
 
-            const selectMediciIndisp = document.getElementById('i_medico');
-            selectMediciIndisp.innerHTML = ['<option value="">-- Seleziona Medico --</option>'].concat(medici.map(m => `<option value="${m.id}">${m.nome}</option>`)).join('');
+            // Aggiorna menu a tendina selezione medici
+            const selectMedici = document.getElementById('i_medico');
+            let opzioniHtml = '<option value="">-- Seleziona Medico --</option>';
+            medici.forEach(m => { opzioniHtml += `<option value="${m.id}">${m.nome}</option>`; });
+            selectMedici.innerHTML = opzioniHtml;
 
+            // Aggiorna riquadro indisponibilità registrate
             const listaIndispEl = document.getElementById('lista_indisp');
             if (indisponibilita.length === 0) {
-                listaIndispEl.innerHTML = '<span class="text-muted small">Nessuna indisponibilità inserita</span>';
+                listaIndispEl.innerHTML = '<span style="color:#6c757d; font-size:0.85rem;">Nessuna indisponibilità inserita</span>';
             } else {
                 listaIndispEl.innerHTML = indisponibilita.map(i => {
                     const medNome = medici.find(m => m.id === i.idMedico)?.nome || 'Sconosciuto';
+                    const dataFormattata = i.data.split('-').reverse().join('/');
                     return `
-                        <div class="indisp-badge">
-                            <span>${i.data.split('-').reverse().join('/')} - <b>${i.slot}</b> [${medNome}]</span>
-                            <b class="text-danger" style="cursor:pointer" onclick="rimuoviIndisponibilita(${i.idUnico})">×</b>
-                        </div>
-                    `;
-                }).join('');
-            }
+                        <div class="indisp-item">
+                            <span>${dataFormattata} - <b>${i.slot}</b> [${medNome}]</span>
+×
 
-            if (calendario.length > 0) {
-                disegnaTabellone();
-            } else {
-                document.getElementById('tabella_turni').innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nessun turno generato. Inserisci i medici e clicca su "Genera Turni Automatici".</td></tr>';
-            }
-        }
-
-        function aggiungiMedico() {
-            const nome = document.getElementById('m_nome').value.trim();
-            const turni = parseInt(document.getElementById('m_turni').value) || 0;
-            if (!nome) return alert("Inserisci un nome valido!");
-            
-            const nuovoId = medici.length > 0 ? Math.max(...medici.map(m => m.id)) + 1 : 1;
-            medici.push({ id: nuovoId, nome: nome, turniContratto: turni });
-            document.getElementById('m_nome').value = '';
-            salvaDatiNelBrowser();
-            aggiornaInterfaccia();
-        }
-
-        function rimuoviMedico(id) {
-            medici = medici.filter(m => m.id !== id);
-            indisponibilita = indisponibilita.filter(i => i.idMedico !== id);
-            calendario.forEach(t => { if (t.idMedicoAssegnato === id) t.idMedicoAssegnato = null; });
-            salvaDatiNelBrowser();
-            aggiornaInterfaccia();
-        }
-
-        function aggiungiIndisponibilita() {
-            const idMedico = parseInt(document.getElementById('i_medico').value);
-            const inizioStr = document.getElementById('i_inizio').value;
-            let fineStr = document.getElementById('i_fine').value;
-            const slot = document.getElementById('i_slot').value;
-
-            if (!idMedico || !inizioStr) return alert("Seleziona il medico e la data di inizio!");
-
-            let dataInizio = new Date(inizioStr);
-            let dataFine = fineStr ? new Date(fineStr) : new Date(inizioStr);
-
-            for (let d = new Date(dataInizio); d <= dataFine; d.setDate(d.getDate() + 1)) {
-                const dataStr = d.toISOString().split('T')[0];
-                if (!indisponibilita.some(i => i.idMedico === idMedico && i.data === dataStr && i.slot === slot)) {
-                    indisponibilita.push({ idUnico: contatoreIndispId++, idMedico, data: dataStr, slot });
-                }
-            }
-            salvaDatiNelBrowser();
-            aggiornaInterfaccia();
-        }
-
-        function rimuoviIndisponibilita(idUnico) {
-            indisponibilita = indisponibilita.filter(i => i.idUnico !== idUnico);
-salvaDatiNelBrowser();
+`;
+}).join('');
+}
+// Forza il disegno del tabellone se sono presenti turni storici salvati
+disegnaTabellone();
+}
+function aggiungiMedico() {
+const nomeInput = document.getElementById('m_nome');
+const turniInput = document.getElementById('m_turni');
+const nome = nomeInput.value.trim();
+const turni = parseInt(turniInput.value) || 0;
+if (!nome) return alert("Inserisci il nome e cognome del medico!");
+const nuovoId = medici.length > 0 ? Math.max(...medici.map(m => m.id)) + 1 : 1;
+medici.push({ id: nuovoId, nome: nome, turniContratto: turni });
+nomeInput.value = '';
+salvaDati();
+aggiornaInterfaccia();
+}
+function rimuoviMedico(id) {
+medici = medici.filter(m => m.id !== id);
+indisponibilita = indisponibilita.filter(i => i.idMedico !== id);
+calendario.forEach(t => { if (t.idMedicoAssegnato === id) t.idMedicoAssegnato = null; });
+salvaDati();
+aggiornaInterfaccia();
+}
+function aggiungiIndisponibilita() {
+const idMedico = parseInt(document.getElementById('i_medico').value);
+const inizioStr = document.getElementById('i_inizio').value;
+const fineStr = document.getElementById('i_fine').value;
+const slot = document.getElementById('i_slot').value;
+if (!idMedico || !inizioStr) return alert("Seleziona il medico e la data di inizio!");
+let dataInizio = new Date(inizioStr);
+let dataFine = fineStr ? new Date(fineStr) : new Date(inizioStr);
+if (dataFine < dataInizio) return alert("La data di fine non può essere precedente a quella di inizio!");
+for (let d = new Date(dataInizio); d <= dataFine; d.setDate(d.getDate() + 1)) {
+let dataStringa = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+if (!indisponibilita.some(i => i.idMedico === idMedico && i.data === dataStringa && i.slot === slot)) {
+indisponibilita.push({ idUnico: contatoreIndispId++, idMedico, data: dataStringa, slot });
+}
+}
+salvaDati();
+aggiornaInterfaccia();
+}
+function rimuoviIndisponibilita(idUnico) {
+indisponibilita = indisponibilita.filter(i => i.idUnico !== idUnico);
+salvaDati();
 aggiornaInterfaccia();
 }
 function generaCalendario() {
 const anno = parseInt(document.getElementById('c_anno').value);
 const mese = parseInt(document.getElementById('c_mese').value);
-if (medici.length === 0) return alert("Inserisci almeno un medico prima di generare!");
+if (!anno || mese < 1 || mese > 12) return alert("Inserisci anno e mese validi!");
+if (medici.length === 0) return alert("Inserisci almeno un medico prima di avviare la generazione!");
+// Svuota solo i turni del mese corrente selezionato
 calendario = calendario.filter(t => {
-const parti = t.data.split('-');
-return !(parseInt(parti[0]) === anno && parseInt(parti[1]) === mese);
+const p = t.data.split('-');
+return !(parseInt(p[0]) === anno && parseInt(p[1]) === mese);
 });
 const giorniNelMese = new Date(anno, mese, 0).getDate();
 let turniFatti = {};
 medici.forEach(m => turniFatti[m.id] = 0);
 for (let g = 1; g <= giorniNelMese; g++) {
 const dataCorr = new Date(anno, mese - 1, g);
-const dataStr = dataCorr.toISOString().split('T')[0];
+const dataStr = dataCorr.getFullYear() + "-" + String(dataCorr.getMonth() + 1).padStart(2, '0') + "-" + String(dataCorr.getDate()).padStart(2, '0');
 const dow = dataCorr.getDay();
 const tipoG = (dow === 0) ? "Festivo" : (dow === 6) ? "Prefestivo" : "Feriale";
 const slots = (tipoG === "Feriale") ? ["Notturno"] : ["Diurno", "Notturno"];
 let medicoDiurnoId = null;
 slots.forEach(slot => {
-const mediciIndisponibili = indisponibilita
+const bloccati = indisponibilita
 .filter(i => i.data === dataStr && (i.slot === slot || i.slot === "Tutto il giorno"))
 .map(i => i.idMedico);
-let mediciDisponibili = medici.filter(m => !mediciIndisponibili.includes(m.id));
+let disponibili = medici.filter(m => !bloccati.includes(m.id));
 if (slot === "Notturno" && medicoDiurnoId !== null) {
-mediciDisponibili = mediciDisponibili.filter(m => m.id !== medicoDiurnoId);
+disponibili = disponibili.filter(m => m.id !== medicoDiurnoId);
 }
 let sceltoId = null;
-if (mediciDisponibili.length > 0) {
-mediciDisponibili.sort((a, b) => (turniFatti[a.id] - a.turniContratto) - (turniFatti[b.id] - b.turniContratto));
-sceltoId = mediciDisponibili[0].id;
+if (disponibili.length > 0) {
+disponibili.sort((a, b) => (turniFatti[a.id] - a.turniContratto) - (turniFatti[b.id] - b.turniContratto));
+sceltoId = disponibili[0].id;
 turniFatti[sceltoId]++;
 if (slot === "Diurno") medicoDiurnoId = sceltoId;
 }
 calendario.push({ data: dataStr, slot, idMedicoAssegnato: sceltoId, tipoGiorno: tipoG });
 });
 }
-salvaDatiNelBrowser();
+salvaDati();
 disegnaTabellone();
 }
 function disegnaTabellone() {
 const anno = document.getElementById('c_anno').value;
 const mese = String(document.getElementById('c_mese').value).padStart(2, '0');
-const turniDaMostrare = calendario.filter(t => t.data.startsWith(${anno}-${mese}));
+const turniMese = calendario.filter(t => t.data.startsWith(anno + "-" + mese));
 const tbody = document.getElementById('tabella_turni');
-if (turniDaMostrare.length === 0) {
-tbody.innerHTML = 'Nessun turno generato per questo mese specifico.';
+if (turniMese.length === 0) {
+tbody.innerHTML = 'Nessun turno generato per questo mese. Inserisci i medici e clicca su "Genera Turni Automatici".';
 return;
 }
-tbody.innerHTML = turniDaMostrare.map(t => {
-const giornoInfo = t.tipoGiorno === "Feriale" ? "🟢 Feriale" : "🔴 " + t.tipoGiorno;
-const opzioniMedici = ['-- SCOPERTO --'].concat(medici.map(m => <option value="${m.id}" ${t.idMedicoAssegnato === m.id ? 'selected' : ''}>${m.nome}</option>)).join('');
-const indiceReale = calendario.findIndex(x => x.data === t.data && x.slot === t.slot);
+tbody.innerHTML = turniMese.map(t => {
+const badge = t.tipoGiorno === "Feriale" ? '🟢 Feriale' : '🔴 ' + t.tipoGiorno + '';
+let opzioniMedici = '-- SCOPERTO --';
+medici.forEach(m => {
+opzioniMedici += <option value="${m.id}" ${t.idMedicoAssegnato === m.id ? 'selected' : ''}>${m.nome}</option>;
+});
+const idxGlobale = calendario.findIndex(x => x.data === t.data && x.slot === t.slot);
 return `
 📅 ${t.data.split('-').reverse().join('/')}
 ${t.slot}
-${giornoInfo}
-${opzioniMedici}
+${badge}
 `;
 }).join('');
 }
-function modificaManuale(indexReale, idMedicoNuovo) {
-calendario[indexReale].idMedicoAssegnato = idMedicoNuovo === "" ? null : parseInt(idMedicoNuovo);
-salvaDatiNelBrowser();
+function modificaManuale(index, idNuovo) {
+calendario[index].idMedicoAssegnato = idNuovo === "" ? null : parseInt(idNuovo);
+salvaDati();
 }
-function cancellaTuttoConConferma() {
-if (confirm("Sei sicuro di voler cancellare TUTTI i dati?")) {
+function resettaTutto() {
+if (confirm("Sei sicuro di voler cancellare definitivamente tutti i dati inseriti?")) {
 localStorage.clear();
 medici = []; indisponibilita = []; calendario = []; contatoreIndispId = 1;
+salvaDati();
 aggiornaInterfaccia();
 }
 }
