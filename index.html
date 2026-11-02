@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>🏥 Gestionale Turni CA</title>
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    <style>
+        body { background: #f4f7f6; padding: 20px; font-family: system-ui, sans-serif; }
+        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: none; }
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .indisp-badge { background: #fff3cd; border: 1px solid #ffe69c; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="text-center my-4 text-primary">🏥 Gestione Turni Continuità Assistenziale (12h)</h1>
+        
+        <div class="row">
+            <!-- Inserimento Medici -->
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h3 class="h5 text-secondary">👨‍⚕️ Gestione Medici</h3>
+                    <div class="mb-2"><input id="m_nome" class="form-control" placeholder="Nome e Cognome"></div>
+                    <div class="mb-2"><input id="m_turni" type="number" class="form-control" placeholder="Turni Mensili Contratto" value="8"></div>
+                    <button onclick="aggiungiMedico()" class="btn btn-success w-100 mb-3">Aggiungi Medico</button>
+                    <h6>Medici Attivi:</h6>
+                    <ul id="lista_medici" class="list-group" style="max-height: 200px; overflow-y: auto;"></ul>
+                </div>
+            </div>
+
+            <!-- Inserimento Indisponibilità -->
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h3 class="h5 text-secondary">❌ Inserisci Indisponibilità</h3>
+                    <div class="mb-2"><select id="i_medico" class="form-select"><option value="">-- Seleziona Medico --</option></select></div>
+                    <div class="mb-2"><label class="small text-muted">Data Inizio</label><input id="i_inizio" type="date" class="form-control"></div>
+                    <div class="mb-2"><label class="small text-muted">Data Fine (Opzionale)</label><input id="i_fine" type="date" class="form-control"></div>
+                    <div class="mb-2">
+                        <select id="i_slot" class="form-select">
+                            <option value="Tutto il giorno">Tutto il giorno</option>
+                            <option value="Diurno">Solo Diurno (Festivi)</option>
+                            <option value="Notturno">Solo Notturno</option>
+                        </select>
+                    </div>
+                    <button onclick="aggiungiIndisponibilita()" class="btn btn-warning w-100">Registra Periodo</button>
+                </div>
+            </div>
+
+            <!-- Parametri Generazione -->
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h3 class="h5 text-secondary">🤖 Pianificazione Mensile</h3>
+                    <div class="row mb-2">
+                        <div class="col"><label class="small text-muted">Anno</label><input id="c_anno" type="number" class="form-control" value="2026"></div>
+                        <div class="col"><label class="small text-muted">Mese (1-12)</label><input id="c_mese" type="number" class="form-control" min="1" max="12" value="11"></div>
+                    </div>
+                    <button onclick="generaCalendario()" class="btn btn-primary w-100 mb-2">Genera Turni Automatici</button>
+                    <button onclick="cancellaTuttoConConferma()" class="btn btn-outline-danger w-100 btn-sm">⚠️ Svuota Tutta la Memoria</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sezione Indisponibilità Registrate -->
+        <div class="card p-3">
+            <h3 class="h5 text-secondary">📋 Elenco Indisponibilità Registrate</h3>
+            <div id="lista_indisp" class="d-flex flex-wrap gap-2" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+
+        <!-- Tabellone Turni -->
+        <div class="table-container mt-4">
+            <h3 class="h5 text-secondary mb-3">📋 Tabellone dei Turni Mensili (Modificabile in tempo reale)</h3>
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Data</th>
+                        <th>Fascia Oraria</th>
+                        <th>Tipologia Giorno</th>
+                        <th>Medico Assegnato</th>
+                    </tr>
+                </thead>
+                <tbody id="tabella_turni">
+                    <tr><td colspan="4" class="text-center text-muted">Nessun turno generato. Inserisci i medici e clicca su "Genera Turni Automatici".</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let medici = JSON.parse(localStorage.getItem('ca_medici')) || [];
+        let indisponibilita = JSON.parse(localStorage.getItem('ca_indisponibilita')) || [];
+        let calendario = JSON.parse(localStorage.getItem('ca_calendario')) || [];
+        let contatoreIndispId = parseInt(localStorage.getItem('ca_contatoreIndispId')) || 1;
+
+        function salvaDatiNelBrowser() {
+            localStorage.setItem('ca_medici', JSON.stringify(medici));
+            localStorage.setItem('ca_indisponibilita', JSON.stringify(indisponibilita));
+            localStorage.setItem('ca_calendario', JSON.stringify(calendario));
+            localStorage.setItem('ca_contatoreIndispId', contatoreIndispId.toString());
+        }
+
+        function aggiornaInterfaccia() {
+            const listaMediciEl = document.getElementById('lista_medici');
+            if (medici.length === 0) {
+                listaMediciEl.innerHTML = '<li class="list-group-item text-muted small">Nessun medico inserito</li>';
+            } else {
+                listaMediciEl.innerHTML = medici.map(m => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center small p-2">
+                        ${m.nome} (Contratto: ${m.turniContratto})
+                        <button class="btn btn-danger btn-sm py-0 px-1" onclick="rimuoviMedico(${m.id})">×</button>
+                    </li>
+                `).join('');
+            }
+
+            const selectMediciIndisp = document.getElementById('i_medico');
+            selectMediciIndisp.innerHTML = ['<option value="">-- Seleziona Medico --</option>'].concat(medici.map(m => `<option value="${m.id}">${m.nome}</option>`)).join('');
+
+            const listaIndispEl = document.getElementById('lista_indisp');
+            if (indisponibilita.length === 0) {
+                listaIndispEl.innerHTML = '<span class="text-muted small">Nessuna indisponibilità inserita</span>';
+            } else {
+                listaIndispEl.innerHTML = indisponibilita.map(i => {
+                    const medNome = medici.find(m => m.id === i.idMedico)?.nome || 'Sconosciuto';
+                    return `
+                        <div class="indisp-badge">
+                            <span>${i.data.split('-').reverse().join('/')} - <b>${i.slot}</b> [${medNome}]</span>
+                            <b class="text-danger" style="cursor:pointer" onclick="rimuoviIndisponibilita(${i.idUnico})">×</b>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (calendario.length > 0) {
+                disegnaTabellone();
+            } else {
+                document.getElementById('tabella_turni').innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nessun turno generato. Inserisci i medici e clicca su "Genera Turni Automatici".</td></tr>';
+            }
+        }
+
+        function aggiungiMedico() {
+            const nome = document.getElementById('m_nome').value.trim();
+            const turni = parseInt(document.getElementById('m_turni').value) || 0;
+            if (!nome) return alert("Inserisci un nome valido!");
+            
+            const nuovoId = medici.length > 0 ? Math.max(...medici.map(m => m.id)) + 1 : 1;
+            medici.push({ id: nuovoId, nome: nome, turniContratto: turni });
+            document.getElementById('m_nome').value = '';
+            salvaDatiNelBrowser();
+            aggiornaInterfaccia();
+        }
+
+        function rimuoviMedico(id) {
+            medici = medici.filter(m => m.id !== id);
+            indisponibilita = indisponibilita.filter(i => i.idMedico !== id);
+            calendario.forEach(t => { if (t.idMedicoAssegnato === id) t.idMedicoAssegnato = null; });
+            salvaDatiNelBrowser();
+            aggiornaInterfaccia();
+        }
+
+        function aggiungiIndisponibilita() {
+            const idMedico = parseInt(document.getElementById('i_medico').value);
+            const inizioStr = document.getElementById('i_inizio').value;
+            let fineStr = document.getElementById('i_fine').value;
+            const slot = document.getElementById('i_slot').value;
+
+            if (!idMedico || !inizioStr) return alert("Seleziona il medico e la data di inizio!");
+
+            let dataInizio = new Date(inizioStr);
+            let dataFine = fineStr ? new Date(fineStr) : new Date(inizioStr);
+
+            for (let d = new Date(dataInizio); d <= dataFine; d.setDate(d.getDate() + 1)) {
+                const dataStr = d.toISOString().split('T')[0];
+                if (!indisponibilita.some(i => i.idMedico === idMedico && i.data === dataStr && i.slot === slot)) {
+                    indisponibilita.push({ idUnico: contatoreIndispId++, idMedico, data: dataStr, slot });
+                }
+            }
+            salvaDatiNelBrowser();
+            aggiornaInterfaccia();
+        }
+
+        function rimuoviIndisponibilita(idUnico) {
+            indisponibilita = indisponibilita.filter(i => i.idUnico !== idUnico);
+salvaDatiNelBrowser();
+aggiornaInterfaccia();
+}
+function generaCalendario() {
+const anno = parseInt(document.getElementById('c_anno').value);
+const mese = parseInt(document.getElementById('c_mese').value);
+if (medici.length === 0) return alert("Inserisci almeno un medico prima di generare!");
+calendario = calendario.filter(t => {
+const parti = t.data.split('-');
+return !(parseInt(parti[0]) === anno && parseInt(parti[1]) === mese);
+});
+const giorniNelMese = new Date(anno, mese, 0).getDate();
+let turniFatti = {};
+medici.forEach(m => turniFatti[m.id] = 0);
+for (let g = 1; g <= giorniNelMese; g++) {
+const dataCorr = new Date(anno, mese - 1, g);
+const dataStr = dataCorr.toISOString().split('T')[0];
+const dow = dataCorr.getDay();
+const tipoG = (dow === 0) ? "Festivo" : (dow === 6) ? "Prefestivo" : "Feriale";
+const slots = (tipoG === "Feriale") ? ["Notturno"] : ["Diurno", "Notturno"];
+let medicoDiurnoId = null;
+slots.forEach(slot => {
+const mediciIndisponibili = indisponibilita
+.filter(i => i.data === dataStr && (i.slot === slot || i.slot === "Tutto il giorno"))
+.map(i => i.idMedico);
+let mediciDisponibili = medici.filter(m => !mediciIndisponibili.includes(m.id));
+if (slot === "Notturno" && medicoDiurnoId !== null) {
+mediciDisponibili = mediciDisponibili.filter(m => m.id !== medicoDiurnoId);
+}
+let sceltoId = null;
+if (mediciDisponibili.length > 0) {
+mediciDisponibili.sort((a, b) => (turniFatti[a.id] - a.turniContratto) - (turniFatti[b.id] - b.turniContratto));
+sceltoId = mediciDisponibili[0].id;
+turniFatti[sceltoId]++;
+if (slot === "Diurno") medicoDiurnoId = sceltoId;
+}
+calendario.push({ data: dataStr, slot, idMedicoAssegnato: sceltoId, tipoGiorno: tipoG });
+});
+}
+salvaDatiNelBrowser();
+disegnaTabellone();
+}
+function disegnaTabellone() {
+const anno = document.getElementById('c_anno').value;
+const mese = String(document.getElementById('c_mese').value).padStart(2, '0');
+const turniDaMostrare = calendario.filter(t => t.data.startsWith(${anno}-${mese}));
+const tbody = document.getElementById('tabella_turni');
+if (turniDaMostrare.length === 0) {
+tbody.innerHTML = 'Nessun turno generato per questo mese specifico.';
+return;
+}
+tbody.innerHTML = turniDaMostrare.map(t => {
+const giornoInfo = t.tipoGiorno === "Feriale" ? "🟢 Feriale" : "🔴 " + t.tipoGiorno;
+const opzioniMedici = ['-- SCOPERTO --'].concat(medici.map(m => <option value="${m.id}" ${t.idMedicoAssegnato === m.id ? 'selected' : ''}>${m.nome}</option>)).join('');
+const indiceReale = calendario.findIndex(x => x.data === t.data && x.slot === t.slot);
+return `
+📅 ${t.data.split('-').reverse().join('/')}
+${t.slot}
+${giornoInfo}
+${opzioniMedici}
+`;
+}).join('');
+}
+function modificaManuale(indexReale, idMedicoNuovo) {
+calendario[indexReale].idMedicoAssegnato = idMedicoNuovo === "" ? null : parseInt(idMedicoNuovo);
+salvaDatiNelBrowser();
+}
+function cancellaTuttoConConferma() {
+if (confirm("Sei sicuro di voler cancellare TUTTI i dati?")) {
+localStorage.clear();
+medici = []; indisponibilita = []; calendario = []; contatoreIndispId = 1;
+aggiornaInterfaccia();
+}
+}
+window.onload = function() {
+aggiornaInterfaccia();
+document.getElementById('c_mese').onchange = disegnaTabellone;
+document.getElementById('c_anno').onchange = disegnaTabellone;
+};
